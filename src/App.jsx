@@ -1,6 +1,7 @@
 import { Container, Row, Col, Button, Form, Card } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import myPhoto from './assets/me.jpg';
+import { useState } from 'react';
 
 // Add font import for Poppins (modern, Apple-like)
 const fontUrl = 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap';
@@ -8,6 +9,48 @@ const fontUrl = 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;7
 const green = '#22c55e';
 
 function App() {
+  // Lead form state
+  const [form, setForm] = useState({
+    name: '',
+    business: '',
+    industry: '',
+    email: '',
+    phone: ''
+  });
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleInputChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    try {
+      const payload = {
+        ...form,
+        timestamp: new Date().toISOString()
+      };
+      const res = await fetch('https://monsoon02.app.n8n.cloud/webhook-test/18b1f55b-7476-475c-9d8b-0ecd8f6b8069', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        setSubmitted(true);
+      } else {
+        setError('Something went wrong. Please try again.');
+      }
+    } catch (err) {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div style={{ background: '#18191A', color: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', padding: '0 0 48px 0' }}>
       <main style={{ flex: '1 0 auto', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
@@ -311,31 +354,43 @@ function App() {
             <Col md={7} lg={6}>
               <Card bg="dark" text="light" className="shadow-lg border-green card-padding hover-scale" style={{ borderWidth: 2, cursor: 'pointer' }}>
                 <Card.Body>
-                  <h3 style={{ fontSize: '1.65rem', fontWeight: 900, color: green, textAlign: 'center', lineHeight: 1.1, letterSpacing: '-1px', marginBottom: '2rem' }}>Get a Free AI Automation Consultation</h3>
-                  <p className="mb-4 text-center">Interested in AI automations for your business? Fill out the form below and I'll reach out to discuss how Elev8 AI can help you grow.</p>
-                  <Form action="https://your-crm-endpoint.com" method="POST">
-                    <Form.Group className="mb-4" controlId="formName">
-                      <Form.Label>Full Name</Form.Label>
-                      <Form.Control type="text" name="name" placeholder="Enter your name" required style={{ padding: '0.75rem 1.25rem', fontSize: '1.1rem' }} />
-                    </Form.Group>
-                    <Form.Group className="mb-4" controlId="formBusinessName">
-                      <Form.Label>Business Name</Form.Label>
-                      <Form.Control type="text" name="business" placeholder="Your business name" required style={{ padding: '0.75rem 1.25rem', fontSize: '1.1rem' }} />
-                    </Form.Group>
-                    <Form.Group className="mb-4" controlId="formIndustry">
-                      <Form.Label>Industry</Form.Label>
-                      <Form.Control type="text" name="industry" placeholder="e.g. Real Estate, Health, Trades" required style={{ padding: '0.75rem 1.25rem', fontSize: '1.1rem' }} />
-                    </Form.Group>
-                    <Form.Group className="mb-4" controlId="formEmail">
-                      <Form.Label>Email address</Form.Label>
-                      <Form.Control type="email" name="email" placeholder="Enter your email" required style={{ padding: '0.75rem 1.25rem', fontSize: '1.1rem' }} />
-                    </Form.Group>
-                    <Form.Group className="mb-4" controlId="formPhone">
-                      <Form.Label>Phone</Form.Label>
-                      <Form.Control type="tel" name="phone" placeholder="Enter your phone number" required style={{ padding: '0.75rem 1.25rem', fontSize: '1.1rem' }} />
-                    </Form.Group>
-                    <Button variant="success" type="submit" className="w-100 hover-btn" style={{ padding: '0.75rem 2.5rem', fontSize: '1.15rem', background: green, borderColor: green, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>SUBMIT</Button>
-                  </Form>
+                  {submitted ? (
+                    <div style={{ textAlign: 'center', padding: '2rem 0' }}>
+                      <h3 style={{ color: green, fontWeight: 900, marginBottom: '1.5rem' }}>Thank you!</h3>
+                      <p style={{ fontSize: '1.1rem' }}>We have received your details and will be in touch shortly.</p>
+                    </div>
+                  ) : (
+                    <>
+                      <h3 style={{ fontSize: '1.65rem', fontWeight: 900, color: green, textAlign: 'center', lineHeight: 1.1, letterSpacing: '-1px', marginBottom: '2rem' }}>Get a Free AI Automation Consultation</h3>
+                      <p className="mb-4 text-center">Interested in AI automations for your business? Fill out the form below and I'll reach out to discuss how Elev8 AI can help you grow.</p>
+                      <Form onSubmit={handleSubmit}>
+                        <Form.Group className="mb-4" controlId="formName">
+                          <Form.Label>Full Name</Form.Label>
+                          <Form.Control type="text" name="name" value={form.name} onChange={handleInputChange} placeholder="Enter your name" required style={{ padding: '0.75rem 1.25rem', fontSize: '1.1rem' }} />
+                        </Form.Group>
+                        <Form.Group className="mb-4" controlId="formBusinessName">
+                          <Form.Label>Business Name</Form.Label>
+                          <Form.Control type="text" name="business" value={form.business} onChange={handleInputChange} placeholder="Your business name" required style={{ padding: '0.75rem 1.25rem', fontSize: '1.1rem' }} />
+                        </Form.Group>
+                        <Form.Group className="mb-4" controlId="formIndustry">
+                          <Form.Label>Industry</Form.Label>
+                          <Form.Control type="text" name="industry" value={form.industry} onChange={handleInputChange} placeholder="e.g. Real Estate, Health, Trades" required style={{ padding: '0.75rem 1.25rem', fontSize: '1.1rem' }} />
+                        </Form.Group>
+                        <Form.Group className="mb-4" controlId="formEmail">
+                          <Form.Label>Email address</Form.Label>
+                          <Form.Control type="email" name="email" value={form.email} onChange={handleInputChange} placeholder="Enter your email" required style={{ padding: '0.75rem 1.25rem', fontSize: '1.1rem' }} />
+                        </Form.Group>
+                        <Form.Group className="mb-4" controlId="formPhone">
+                          <Form.Label>Phone</Form.Label>
+                          <Form.Control type="tel" name="phone" value={form.phone} onChange={handleInputChange} placeholder="Enter your phone number" required style={{ padding: '0.75rem 1.25rem', fontSize: '1.1rem' }} />
+                        </Form.Group>
+                        <Button variant="success" type="submit" className="w-100 hover-btn" style={{ padding: '0.75rem 2.5rem', fontSize: '1.15rem', background: green, borderColor: green, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }} disabled={submitting}>
+                          {submitting ? 'Submitting...' : 'SUBMIT'}
+                        </Button>
+                        {error && <div style={{ color: 'red', marginTop: 12 }}>{error}</div>}
+                      </Form>
+                    </>
+                  )}
                 </Card.Body>
               </Card>
             </Col>

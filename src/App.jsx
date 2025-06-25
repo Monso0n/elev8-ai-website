@@ -34,7 +34,7 @@ function App() {
         ...form,
         timestamp: new Date().toISOString()
       };
-      const res = await fetch('https://monsoon02.app.n8n.cloud/webhook-test/18b1f55b-7476-475c-9d8b-0ecd8f6b8069', {
+      const res = await fetch('https://monsoon02.app.n8n.cloud/webhook/18b1f55b-7476-475c-9d8b-0ecd8f6b8069', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
